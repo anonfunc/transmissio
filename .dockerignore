@@ -1,0 +1,8 @@
+Dockerfile
+transmissio
+magefile.go
+config/
+blackhole
+.git
+.idea
+.mage
