@@ -80,7 +80,7 @@ func (r PutIoDownloader) FetchMagnetFile(filename, downloadDir string) (FetchRes
 }
 
 func renameOriginal(err error, filename string) {
-	if err != nil {
+	if err == nil {
 		if err := os.Rename(filename, filename+".done"); err != nil {
 			log.Printf("Unable to rename %s", filename)
 		}
