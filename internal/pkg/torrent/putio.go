@@ -131,8 +131,8 @@ func (r PutIoDownloader) FetchMagnetLink(urlStr string, downloadDir string) (Fet
 			}
 			return FetchResult{Error: err, Name: transfer.Name, DownloadDir: downloadDir}, nil
 		}
-		log.Printf("Sleeping %d seconds for %s ...", 10+updated.EstimatedTime/2, transfer.Name)
-		time.Sleep(time.Duration(10+updated.EstimatedTime/2) * time.Second)
+		log.Printf("Sleeping %d seconds for %s ...", 10+updated.EstimatedTime/4, transfer.Name)
+		time.Sleep(time.Duration(10+updated.EstimatedTime/4) * time.Second)
 	}
 }
 
@@ -168,7 +168,7 @@ func (r PutIoDownloader) recursiveDownload(file putio.File, downloadDir string) 
 }
 
 func (r PutIoDownloader) downloadFile(file putio.File, downloadDir string) error {
-	readCloser, err := r.Client.Files.Download(context.TODO(), file.ID, false, nil)
+	readCloser, err := r.Client.Files.Download(context.TODO(), file.ID, true, nil)
 	if err != nil {
 		return err
 	}

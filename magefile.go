@@ -20,6 +20,10 @@ func Build() error {
 	return cmd.Run()
 }
 
+func Test() error {
+	return sh.Run("go", "test", "./...")
+}
+
 func Run() error {
 	mg.Deps(Build)
 	return sh.RunV("./transmissio")

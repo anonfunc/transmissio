@@ -1,0 +1,18 @@
+language: go
+go:
+  - 1.11.x
+env:
+  - GO111MODULE=on
+services:
+  - docker
+install:
+  - mkdir -p $HOME/src
+  - mv $HOME/gopath/src/github.com/anonfunc/transmissio $HOME/src
+  - export TRAVIS_BUILD_DIR=$HOME/src/transmissio
+  - cd $HOME/src/transmissio
+  - go get github.com/magefile/mage
+script:
+  - go mod download
+  - mage -v test
+  - mage -v build
+  - mage -v docker
