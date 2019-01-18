@@ -152,7 +152,7 @@ func (r PutIoDownloader) recursiveDownload(file putio.File, downloadDir string) 
 	if file.ContentType == "application/x-directory" {
 		children, _, err := r.Client.Files.List(context.TODO(), file.ID)
 		if err != nil {
-			// return err
+			return err
 		}
 		for _, child := range children {
 			if err := r.recursiveDownload(child, filepath.Join(downloadDir, file.Name)); err != nil {
