@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"golang.org/x/sys/unix"
 )
 
 const sessionIDHeader = "X-Transmission-Session-Id"
@@ -21,6 +23,7 @@ func Initialize() {
 		panic(err)
 	}
 	knownSessionID = base64.StdEncoding.EncodeToString(sessionRandomBytes)
+	unix.Umask(000) // TODO Is this appropriate outside of Docker?
 }
 
 func (receiver *RPCRequest) DoIt() (*RPCResponse, error) {

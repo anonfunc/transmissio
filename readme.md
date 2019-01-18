@@ -7,10 +7,10 @@ A downloading service for Put.io
 - https://app.put.io/settings/account/oauth/apps/new
 When done, you'll have a personal OAuth Token for the application.
 
-### Docker (not published yet):
+### Docker: [anonfunc/transmissio](https://hub.docker.com/r/anonfunc/transmissio)
 Mount /config, /download and /blackhole directories.
 
-### Or Build:
+### Build:
 - Install [go](https://golang.org/)
 - Install [mage](https://magefile.org/)
 - `mage build`

@@ -8,4 +8,5 @@ require (
 	github.com/radovskyb/watcher v1.0.5
 	github.com/spf13/viper v1.3.1
 	golang.org/x/oauth2 v0.0.0-20190115181402-5dab4167f31c
+	golang.org/x/sys v0.0.0-20190102155601-82a175fd1598
 )

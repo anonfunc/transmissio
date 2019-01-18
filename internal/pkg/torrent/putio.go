@@ -172,7 +172,7 @@ func (r PutIoDownloader) downloadFile(file putio.File, downloadDir string) error
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(downloadDir, 0755); err != nil {
+	if err := os.MkdirAll(downloadDir, 0777); err != nil {
 		return err
 	}
 	downloadFilename := filepath.Join(downloadDir, file.Name)
