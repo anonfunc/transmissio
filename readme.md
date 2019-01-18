@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/anonfunc/transmissio.svg?branch=master)](https://travis-ci.org/anonfunc/transmissio)
 # Transmiss.io (WORK IN PROGRESS)
 A downloading service for Put.io
 
