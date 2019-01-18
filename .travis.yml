@@ -6,6 +6,7 @@ env:
 services:
   - docker
 install:
+  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.12.5
   - mkdir -p $HOME/src
   - mv $HOME/gopath/src/github.com/anonfunc/transmissio $HOME/src
   - export TRAVIS_BUILD_DIR=$HOME/src/transmissio
