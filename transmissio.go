@@ -16,8 +16,10 @@ import (
 func main() {
 	config.Config()
 	transmission.Initialize()
+	downloader := torrent.NewDownloader()
+	transmission.Downloader = downloader
 	go func() {
-		blackhole.StartWatcher(torrent.NewDownloader(), viper.GetString("blackhole"))
+		blackhole.StartWatcher(downloader, viper.GetString("blackhole"))
 	}()
 	http.HandleFunc("/transmission/rpc", transmission.RPCHandler)
 	listeningOn := viper.GetString("host") + ":" + viper.GetString("port")

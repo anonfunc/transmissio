@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"time"
@@ -131,9 +132,20 @@ func (r PutIoDownloader) FetchMagnetLink(urlStr string, downloadDir string) (Fet
 			}
 			return FetchResult{Error: err, Name: transfer.Name, DownloadDir: downloadDir}, nil
 		}
-		log.Printf("Sleeping %d seconds for %s ...", 10+updated.EstimatedTime/4, transfer.Name)
-		time.Sleep(time.Duration(10+updated.EstimatedTime/4) * time.Second)
+		sleepFor := sleepTime(updated.EstimatedTime)
+		log.Printf("Sleeping %d seconds for %s ...", sleepFor, transfer.Name)
+		time.Sleep(time.Duration(sleepFor) * time.Second)
 	}
+}
+
+func sleepTime(remaining int64) int64 {
+	fifth := remaining / 5
+	if fifth >= 600 {
+		// Check at least every ten-ish minutes.
+		fifth = 600
+	}
+	// Small randomness to prevent workers from landing on same times.
+	return fifth + rand.Int63n(30)
 }
 
 func (r PutIoDownloader) downloadCompletedTorrent(updated putio.Transfer, downloadDir string) error {
