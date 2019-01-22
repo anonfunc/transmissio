@@ -1,6 +1,13 @@
 [![Build Status](https://travis-ci.org/anonfunc/transmissio.svg?branch=master)](https://travis-ci.org/anonfunc/transmissio)
-# Transmiss.io (WORK IN PROGRESS)
+# Transmiss.io
 A downloading service for Put.io
+
+Project status:
+- Perfectly useful blackhole downloader (supports .magnet files as well.)
+- Somewhat useful Transmission RPC drop-in replacement
+- Still very opaque: no visibility into downloading from Put.io besides
+log messages, no configuration interface, etc.
+
 
 ## Setup from Source:
 ### Get an OAuth Token
@@ -37,4 +44,20 @@ Place .magnet or .torrent files in the blackhole directory.
 Subdirectories will be preserved in the download directory.
 
 ## Using via Transmission-RPC compatible API
-NOT READY YET.
+Work in progress, but coming along.  Tested with nzb360.
+
+Use `http://<address>:<port>` as the Transmission host, 
+`/transmission/rpc` as the path if needed.  No auth,
+so don't put this facing the internet.
+
+Torrent status will reflect Put.io status, so a completed transfer
+which is in the middle of downloading will appear to be 100% complete.
+When finished downloading locally, the transfer will be removed, 
+not marked as seeding.
+
+Handled RPC methods:
+
+- session-get
+- torrent-get
+- torrent-add
+- empty string (used as ping?)

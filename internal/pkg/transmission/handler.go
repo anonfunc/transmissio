@@ -121,12 +121,14 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 		case "IN_QUEUE":
 			status = 3
 		case "COMPLETED":
-			status = 0
+			status = 4 // Downloading makes sense, since we clear after we DL.
+			transfer.Downloaded = int64(transfer.Size)
+			transfer.Availability = 100
 		case "SEEDING":
 			status = 6
 		default:
 			log.Printf("unknown status %s", transfer.Status)
-			status = 1
+			status = 7
 		}
 		torrentInfo := TorrentInfo{
 			ID:                 transfer.ID,
@@ -171,15 +173,14 @@ func RPCHandler(w http.ResponseWriter, r *http.Request) {
 		// return
 	}
 
-	bytes, err := ioutil.ReadAll(r.Body)
+	requestBytes, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	log.Printf("hit! %s\n", string(bytes))
 	var rpcRequest RPCRequest
-	if err := json.Unmarshal(bytes, &rpcRequest); err != nil {
+	if err := json.Unmarshal(requestBytes, &rpcRequest); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -193,7 +194,6 @@ func RPCHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Printf("Response: %s", string(responseBytes))
 	if _, err := w.Write(responseBytes); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
