@@ -169,8 +169,8 @@ func RPCHandler(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.Header.Get(sessionIDHeader)
 	if len(sessionID) == 0 {
 		w.Header().Set(sessionIDHeader, knownSessionID)
-		// w.WriteHeader(http.StatusConflict)
-		// return
+		w.WriteHeader(http.StatusConflict)
+		return
 	}
 
 	requestBytes, err := ioutil.ReadAll(r.Body)
