@@ -162,20 +162,20 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 }
 
 func RPCHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+	requestBytes, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	log.Printf("Request: %s", string(requestBytes))
 	sessionID := r.Header.Get(sessionIDHeader)
 	if len(sessionID) == 0 {
 		w.Header().Set(sessionIDHeader, knownSessionID)
 		w.WriteHeader(http.StatusConflict)
 		return
 	}
-
-	requestBytes, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -194,6 +194,7 @@ func RPCHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	log.Printf("Response: %s", string(requestBytes))
 	if _, err := w.Write(responseBytes); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
