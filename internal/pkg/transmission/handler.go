@@ -80,7 +80,13 @@ func (receiver *RPCRequest) DoIt() (*RPCResponse, error) {
 func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 	filename := receiver.Arguments["filename"].(string)
 	metainfoI := receiver.Arguments["metainfo"]
-	downloadTo := viper.GetString("downloadTo")
+	var downloadTo string
+	switch receiver.Arguments["download-dir"].(type) {
+	case string:
+		downloadTo = receiver.Arguments["download-dir"].(string)
+	default:
+		downloadTo = viper.GetString("downloadTo")
+	}
 	if strings.HasPrefix(filename, "magnet:") {
 		Downloader.AsyncFetchMagnetLink(filename, downloadTo)
 	} else if metainfoI != nil {
