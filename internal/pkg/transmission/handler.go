@@ -81,9 +81,9 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 	filename := receiver.Arguments["filename"].(string)
 	metainfoI := receiver.Arguments["metainfo"]
 	var downloadTo string
-	switch receiver.Arguments["download-dir"].(type) {
+	switch v := receiver.Arguments["download-dir"].(type) {
 	case string:
-		downloadTo = receiver.Arguments["download-dir"].(string)
+		downloadTo = v
 	default:
 		downloadTo = viper.GetString("downloadTo")
 	}

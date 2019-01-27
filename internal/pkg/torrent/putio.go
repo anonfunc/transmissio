@@ -146,12 +146,11 @@ func sleepTime(remaining int64, createdAt *putio.Time) time.Duration {
 		if createdAt == nil {
 			return time.Hour
 		}
-		elapsed := time.Now().Sub(createdAt.Time)
+		elapsed := time.Since(createdAt.Time)
 		if elapsed >= time.Hour {
 			return time.Hour
-		} else {
-			return elapsed + time.Second * time.Duration(rand.Int63n(300))
 		}
+		return elapsed + time.Second*time.Duration(rand.Int63n(300))
 	}
 
 	fifth := remaining / 5
@@ -160,7 +159,7 @@ func sleepTime(remaining int64, createdAt *putio.Time) time.Duration {
 		fifth = 600
 	}
 	// Small randomness to prevent workers from landing on same times.
-	return time.Duration(fifth + rand.Int63n(30)) * time.Second
+	return time.Duration(fifth+rand.Int63n(30)) * time.Second
 }
 
 func (r PutIoDownloader) downloadCompletedTorrent(updated putio.Transfer, downloadDir string) error {
@@ -186,10 +185,8 @@ func (r PutIoDownloader) recursiveDownload(file putio.File, downloadDir string) 
 				return err
 			}
 		}
-	} else {
-		if err := r.downloadFile(file, downloadDir); err != nil {
-			return err
-		}
+	} else if err := r.downloadFile(file, downloadDir); err != nil {
+		return err
 	}
 	return nil
 }
