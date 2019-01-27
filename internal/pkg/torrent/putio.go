@@ -132,20 +132,35 @@ func (r PutIoDownloader) FetchMagnetLink(urlStr string, downloadDir string) (Fet
 			}
 			return FetchResult{Error: err, Name: transfer.Name, DownloadDir: downloadDir}, nil
 		}
-		sleepFor := sleepTime(updated.EstimatedTime)
-		log.Printf("Sleeping %d seconds for %s ...", sleepFor, transfer.Name)
-		time.Sleep(time.Duration(sleepFor) * time.Second)
+		sleepFor := sleepTime(updated.EstimatedTime, updated.CreatedAt)
+		log.Printf("Sleeping %.0f seconds for %s ...", sleepFor.Seconds(), transfer.Name)
+		time.Sleep(sleepFor)
 	}
 }
 
-func sleepTime(remaining int64) int64 {
+func sleepTime(remaining int64, createdAt *putio.Time) time.Duration {
+	if remaining == 0 {
+		// Not started yet, so let's sleep for a time
+		// proportional to the age of the transfer,
+		// but not over an hour.
+		if createdAt == nil {
+			return time.Hour
+		}
+		elapsed := time.Now().Sub(createdAt.Time)
+		if elapsed >= time.Hour {
+			return time.Hour
+		} else {
+			return elapsed + time.Second * time.Duration(rand.Int63n(300))
+		}
+	}
+
 	fifth := remaining / 5
 	if fifth >= 600 {
 		// Check at least every ten-ish minutes.
 		fifth = 600
 	}
 	// Small randomness to prevent workers from landing on same times.
-	return fifth + rand.Int63n(30)
+	return time.Duration(fifth + rand.Int63n(30)) * time.Second
 }
 
 func (r PutIoDownloader) downloadCompletedTorrent(updated putio.Transfer, downloadDir string) error {
