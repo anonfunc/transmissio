@@ -209,7 +209,7 @@ func RPCHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Printf("Response: %s", string(requestBytes))
+	log.Printf("Response: %s", string(responseBytes))
 	if _, err := w.Write(responseBytes); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
