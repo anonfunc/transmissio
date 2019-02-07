@@ -57,6 +57,6 @@ type TorrentInfoSmall struct {
 }
 
 type TorrentAdd struct {
-	TorrentAdded     TorrentInfoSmall `json:"torrent-added,omitempty"`
-	TorrentDuplicate TorrentInfoSmall `json:"torrent-duplicate,omitempty"`
+	TorrentAdded     *TorrentInfoSmall `json:"torrent-added,omitempty"`
+	TorrentDuplicate *TorrentInfoSmall `json:"torrent-duplicate,omitempty"`
 }

@@ -90,6 +90,21 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 	}
 	if strings.HasPrefix(filename, "magnet:") {
 		Downloader.AsyncFetchMagnetLink(filename, downloadTo)
+		mi, err := metainfo.ParseMagnetURI(filename)
+		if err != nil {
+			log.Printf("Unable to parse magnet URI")
+			return
+		}
+		h := fnv.New32a()
+		if _, err := h.Write([]byte(mi.InfoHash.Bytes())); err != nil {
+			log.Printf("Unable to make filename into ID, %s\n", err.Error())
+		}
+		id := int64(h.Sum32())
+		result.TorrentAdded = &TorrentInfoSmall{
+			ID:         id,
+			Name:       mi.DisplayName,
+			HashString: mi.InfoHash.AsString(),
+		}
 	} else if metainfoI != nil {
 		metaBytes, err := base64.StdEncoding.DecodeString(metainfoI.(string))
 		if err != nil {
@@ -106,13 +121,15 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 			return
 		}
 		hashBytes := mi.HashInfoBytes()
-		result.TorrentAdded.HashString = hashBytes.AsString()
-		result.TorrentAdded.Name = filename
 		h := fnv.New32a()
 		if _, err := h.Write(hashBytes.Bytes()); err != nil {
 			log.Printf("Unable to make hash into ID, %s\n", err.Error())
 		}
-		result.TorrentAdded.ID = int64(h.Sum32())
+		result.TorrentAdded = &TorrentInfoSmall{
+			ID:         int64(h.Sum32()),
+			Name:       filename,
+			HashString: hashBytes.AsString(),
+		}
 		magnetLink := mi.Magnet(info.Name, hashBytes).String()
 		Downloader.AsyncFetchMagnetLink(magnetLink, downloadTo)
 	}
