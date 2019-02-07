@@ -180,7 +180,7 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			}
 		} else {
 			// TODO Stable ID and hash for torrent files.
-			id, hash = torrentLinkToIdAndHash(transfer.TorrentLink)
+			id, hash = torrentLinkToIDAndHash(transfer.TorrentLink)
 			log.Printf("No magnet URI, fetched and derived %d and %s", id, hash)
 		}
 
@@ -242,10 +242,9 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 	}
 }
 
-
 var torrentLinkInfoCache = make(map[string]*metainfo.MetaInfo)
 
-func torrentLinkToIdAndHash(torrentLink string) (int64, string) {
+func torrentLinkToIDAndHash(torrentLink string) (int64, string) {
 	if torrentLinkInfoCache[torrentLink] == nil {
 		// TODO Smarter max cache size.
 		if len(torrentLinkInfoCache) > 1000 {
