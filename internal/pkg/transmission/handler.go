@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"hash/fnv"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -104,7 +105,15 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 			log.Printf("error converting torrent: %s", err.Error())
 			return
 		}
-		magnetLink := mi.Magnet(info.Name, mi.HashInfoBytes()).String()
+		hashBytes := mi.HashInfoBytes()
+		result.TorrentAdded.HashString = hashBytes.AsString()
+		result.TorrentAdded.Name = filename
+		h := fnv.New32a()
+		if _, err := h.Write(hashBytes.Bytes()); err != nil {
+			log.Printf("Unable to make hash into ID, %s\n", err.Error())
+		}
+		result.TorrentAdded.ID = int64(h.Sum32())
+		magnetLink := mi.Magnet(info.Name, hashBytes).String()
 		Downloader.AsyncFetchMagnetLink(magnetLink, downloadTo)
 	}
 	return result
