@@ -162,8 +162,25 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			log.Printf("unknown status %s", transfer.Status)
 			status = 7
 		}
+		var id int64
+		if transfer.MagnetURI != "" {
+			mi, err := metainfo.ParseMagnetURI(transfer.MagnetURI)
+			if err != nil {
+				log.Printf("Unabled to parse magnet URI %s", err.Error())
+				id = transfer.ID
+			} else {
+				h := fnv.New32a()
+				if _, err := h.Write([]byte(mi.InfoHash.Bytes())); err != nil {
+					log.Printf("Unable to make filename into ID, %s\n", err.Error())
+				}
+				id = int64(h.Sum32())
+			}
+		} else {
+			// TODO Stable ID.
+			id = transfer.ID
+		}
 		torrentInfo := TorrentInfo{
-			ID:                 transfer.ID,
+			ID:                 id,
 			Name:               transfer.Name,
 			Error:              0,
 			ErrorString:        transfer.ErrorMessage,

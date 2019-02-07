@@ -2,7 +2,8 @@ Dockerfile
 transmissio
 magefile.go
 config/
-blackhole
+download/
+blackhole/
 .git
 .idea
 .mage
