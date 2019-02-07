@@ -96,14 +96,14 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 			return
 		}
 		h := fnv.New32a()
-		if _, err := h.Write([]byte(mi.InfoHash.Bytes())); err != nil {
+		if _, err := h.Write(mi.InfoHash.Bytes()); err != nil {
 			log.Printf("Unable to make filename into ID, %s\n", err.Error())
 		}
 		id := int64(h.Sum32())
 		result.TorrentAdded = &TorrentInfoSmall{
 			ID:         id,
 			Name:       mi.DisplayName,
-			HashString: mi.InfoHash.AsString(),
+			HashString: mi.InfoHash.HexString(),
 		}
 	} else if metainfoI != nil {
 		metaBytes, err := base64.StdEncoding.DecodeString(metainfoI.(string))
@@ -128,7 +128,7 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 		result.TorrentAdded = &TorrentInfoSmall{
 			ID:         int64(h.Sum32()),
 			Name:       filename,
-			HashString: hashBytes.AsString(),
+			HashString: hashBytes.HexString(),
 		}
 		magnetLink := mi.Magnet(info.Name, hashBytes).String()
 		Downloader.AsyncFetchMagnetLink(magnetLink, downloadTo)
@@ -137,14 +137,14 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 }
 
 func (receiver *RPCRequest) torrentGet() TorrentGet {
-	result := TorrentGet{
-		Torrents: []TorrentInfo{},
-	}
 	transfers, err := Downloader.Client.Transfers.List(context.TODO())
 	if err != nil {
 		log.Printf("error in torrentGet: %s", err.Error())
-		return result
+		return TorrentGet{}
 	}
+	idsSearchRaw, idsSearchGiven := receiver.Arguments["ids"]
+	idsSearch, idSearchIsSlice := idsSearchRaw.([]interface{})
+	torrents := make([]TorrentInfo, 0, len(transfers))
 	for _, transfer := range transfers {
 		var status int64
 		switch transfer.Status {
@@ -163,22 +163,53 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			status = 7
 		}
 		var id int64
+		var hash string
 		if transfer.MagnetURI != "" {
 			mi, err := metainfo.ParseMagnetURI(transfer.MagnetURI)
 			if err != nil {
 				log.Printf("Unabled to parse magnet URI %s", err.Error())
 				id = transfer.ID
+				hash = "hash"
 			} else {
 				h := fnv.New32a()
-				if _, err := h.Write([]byte(mi.InfoHash.Bytes())); err != nil {
+				if _, err := h.Write(mi.InfoHash.Bytes()); err != nil {
 					log.Printf("Unable to make filename into ID, %s\n", err.Error())
 				}
 				id = int64(h.Sum32())
+				hash = mi.InfoHash.HexString()
 			}
 		} else {
-			// TODO Stable ID.
+			// TODO Stable ID and hash for torrent files.
+			log.Printf("No magnetURI for transfer.")
 			id = transfer.ID
+			hash = "hash"
 		}
+
+		if idsSearchGiven && idSearchIsSlice {
+			var match bool
+		outer:
+			for _, idRaw := range idsSearch {
+				switch searchID := idRaw.(type) {
+				case int64:
+					if id == searchID {
+						match = true
+						break outer
+					}
+				case string:
+					if hash == searchID {
+						match = true
+						break outer
+					}
+				default:
+					// TODO
+					match = true
+				}
+			}
+			if !match {
+				continue
+			}
+		}
+
 		torrentInfo := TorrentInfo{
 			ID:                 id,
 			Name:               transfer.Name,
@@ -205,9 +236,11 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 		if transfer.FinishedAt != nil {
 			torrentInfo.DoneDate = transfer.FinishedAt.Unix()
 		}
-		result.Torrents = append(result.Torrents, torrentInfo)
+		torrents = append(torrents, torrentInfo)
 	}
-	return result
+	return TorrentGet{
+		Torrents: torrents,
+	}
 }
 
 func RPCHandler(w http.ResponseWriter, r *http.Request) {

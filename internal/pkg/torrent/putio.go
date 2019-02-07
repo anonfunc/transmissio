@@ -127,8 +127,10 @@ func (r PutIoDownloader) FetchMagnetLink(urlStr string, downloadDir string) (Fet
 			if err := r.Client.Files.Delete(context.TODO(), updated.FileID); err != nil {
 				log.Printf("Unable to remove completed download! %s", updated.Name)
 			}
-			if err := r.Client.Transfers.Clean(context.TODO()); err != nil {
-				log.Printf("Unable to clean transfer list! %s", updated.Name)
+			log.Printf("Sleeping 10 minutes before removing transfer %s ...", transfer.Name)
+			time.Sleep(10 * time.Minute)
+			if err := r.Client.Transfers.Cancel(context.TODO(), updated.ID); err != nil {
+				log.Printf("Unable to clean transfer %d! %s, %s", updated.ID, updated.Name, err.Error())
 			}
 			return FetchResult{Error: err, Name: transfer.Name, DownloadDir: downloadDir}, nil
 		}
