@@ -103,7 +103,7 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 		result.TorrentAdded = &TorrentInfoSmall{
 			ID:         id,
 			Name:       mi.DisplayName,
-			HashString: mi.InfoHash.HexString(),
+			HashString: strings.ToLower(mi.InfoHash.HexString()),
 		}
 	} else if metainfoI != nil {
 		metaBytes, err := base64.StdEncoding.DecodeString(metainfoI.(string))
@@ -128,7 +128,7 @@ func (receiver *RPCRequest) torrentAdd() (result TorrentAdd) {
 		result.TorrentAdded = &TorrentInfoSmall{
 			ID:         int64(h.Sum32()),
 			Name:       filename,
-			HashString: hashBytes.HexString(),
+			HashString: strings.ToLower(hashBytes.HexString()),
 		}
 		magnetLink := mi.Magnet(info.Name, hashBytes).String()
 		Downloader.AsyncFetchMagnetLink(magnetLink, downloadTo)
@@ -176,13 +176,12 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 					log.Printf("Unable to make filename into ID, %s\n", err.Error())
 				}
 				id = int64(h.Sum32())
-				hash = mi.InfoHash.HexString()
+				hash = strings.ToLower(mi.InfoHash.HexString())
 			}
 		} else {
 			// TODO Stable ID and hash for torrent files.
-			log.Printf("No magnetURI for transfer.")
-			id = transfer.ID
-			hash = "hash"
+			id, hash = torrentLinkToIdAndHash(transfer.TorrentLink)
+			log.Printf("No magnet URI, fetched and derived %d and %s", id, hash)
 		}
 
 		if idsSearchGiven && idSearchIsSlice {
@@ -196,7 +195,7 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 						break outer
 					}
 				case string:
-					if hash == searchID {
+					if hash == strings.ToLower(searchID) {
 						match = true
 						break outer
 					}
@@ -241,6 +240,39 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 	return TorrentGet{
 		Torrents: torrents,
 	}
+}
+
+
+var torrentLinkInfoCache = make(map[string]*metainfo.MetaInfo)
+
+func torrentLinkToIdAndHash(torrentLink string) (int64, string) {
+	if torrentLinkInfoCache[torrentLink] == nil {
+		// TODO Smarter max cache size.
+		if len(torrentLinkInfoCache) > 1000 {
+			torrentLinkInfoCache = make(map[string]*metainfo.MetaInfo)
+		}
+		resp, err := http.Get(torrentLink)
+		if err != nil {
+			log.Printf("Error retrieving torrent link: %s", err.Error())
+			return 0, ""
+		}
+		info, err := metainfo.Load(resp.Body)
+		defer resp.Body.Close()
+		if err != nil {
+			log.Printf("Error reading torrent response: %s", err.Error())
+			return 0, ""
+		}
+		torrentLinkInfoCache[torrentLink] = info
+	}
+	hashInfo := torrentLinkInfoCache[torrentLink].HashInfoBytes()
+	h := fnv.New32a()
+	if _, err := h.Write(hashInfo.Bytes()); err != nil {
+		log.Printf("Unable to make filename into ID, %s\n", err.Error())
+	}
+	id := int64(h.Sum32())
+	hash := strings.ToLower(hashInfo.HexString())
+	return id, hash
+
 }
 
 func RPCHandler(w http.ResponseWriter, r *http.Request) {
