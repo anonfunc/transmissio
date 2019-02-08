@@ -223,35 +223,40 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			case v == "name":
 				torrentInfo.Name = transfer.Name
 			case v == "error":
-				torrentInfo.Error = 0
+				var i int64  // TODO What to put here?
+				torrentInfo.Error = &i
 			case v == "errorString":
-				torrentInfo.ErrorString = transfer.ErrorMessage
+				torrentInfo.ErrorString = transfer.StatusMessage
 			case v == "status":
 				torrentInfo.Status = status
 			case v == "downloadDir":
 				torrentInfo.DownloadDir = viper.GetString("downloadTo")
 			case v == "rateDownload":
-				torrentInfo.RateDownload = int64(transfer.DownloadSpeed)
+				i := int64(transfer.DownloadSpeed)
+				torrentInfo.RateDownload = &i
 			case v == "rateUpload":
-				torrentInfo.RateUpload = int64(transfer.UploadSpeed)
+				i := int64(transfer.UploadSpeed)
+				torrentInfo.RateUpload = &i
 			case v == "peersGettingFromUs":
-				torrentInfo.PeersGettingFromUs = int64(transfer.PeersGettingFromUs)
+				i := int64(transfer.PeersGettingFromUs)
+				torrentInfo.PeersGettingFromUs = &i
 			case v == "peersSendingToUs":
-				torrentInfo.PeersSendingToUs = int64(transfer.PeersSendingToUs)
+				i := int64(transfer.PeersSendingToUs)
+				torrentInfo.PeersSendingToUs = &i
 			case v == "peersConnected":
-				torrentInfo.PeersConnected = int64(transfer.PeersConnected)
+				i := int64(transfer.PeersConnected)
+				torrentInfo.PeersConnected = &i
 			case v == "eta":
 				torrentInfo.Eta = transfer.EstimatedTime
-			case v == "haveUnchecked":
-				torrentInfo.HaveUnchecked = 0
 			case v == "haveValid":
-				torrentInfo.HaveValid = transfer.Downloaded
+				torrentInfo.HaveValid = &transfer.Downloaded
 			case v == "uploadedEver":
-				torrentInfo.UploadedEver = transfer.Uploaded
+				torrentInfo.UploadedEver = &transfer.Uploaded
 			case v == "sizeWhenDone":
 				torrentInfo.SizeWhenDone = int64(transfer.Size)
 			case v == "desiredAvailable":
-				torrentInfo.DesiredAvailable = int64(transfer.Availability)
+				i := int64(transfer.Availability)
+				torrentInfo.DesiredAvailable = &i
 			case v == "comment":
 				torrentInfo.Comment = transfer.StatusMessage
 			case v == "percentDone":
