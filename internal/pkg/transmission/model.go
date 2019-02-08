@@ -28,28 +28,35 @@ type TorrentGet struct {
 }
 
 type TorrentInfo struct {
-	ID                 int64  `json:"id"`
-	Name               string `json:"name"`
-	Error              int64  `json:"error"`
-	ErrorString        string `json:"errorString"`
-	Status             int64  `json:"status"` // tr_torrent_activity
-	DownloadDir        string `json:"downloadDir"`
-	RateDownload       int64  `json:"rateDownload"` // (B/s)
-	RateUpload         int64  `json:"rateUpload"`   // (B/s)
-	PeersGettingFromUs int64  `json:"peersGettingFromUs"`
-	PeersSendingToUs   int64  `json:"peersSendingToUs"`
-	PeersConnected     int64  `json:"peersConnected"`
-	Eta                int64  `json:"eta"`
-	HaveUnchecked      int64  `json:"haveUnchecked"`
-	HaveValid          int64  `json:"haveValid"`
-	UploadedEver       int64  `json:"uploadedEver"`
-	SizeWhenDone       int64  `json:"sizeWhenDone"`
-	AddedDate          int64  `json:"addedDate"`
-	DoneDate           int64  `json:"doneDate"`
-	DesiredAvailable   int64  `json:"desiredAvailable"`
-	Comment            string `json:"comment"`
-	PercentDone        float32  `json:"percentDone"`
-	IsFinished         bool   `json:"isFinished"`
+	ID                 int64      `json:"id,omitempty"`
+	Name               string     `json:"name,omitempty"`
+	Error              int64      `json:"error,omitempty"`
+	ErrorString        string     `json:"errorString,omitempty"`
+	Status             int64      `json:"status,omitempty"` // tr_torrent_activity
+	DownloadDir        string     `json:"downloadDir,omitempty"`
+	RateDownload       int64      `json:"rateDownload,omitempty"` // (B/s)
+	RateUpload         int64      `json:"rateUpload,omitempty"`   // (B/s)
+	PeersGettingFromUs int64      `json:"peersGettingFromUs,omitempty"`
+	PeersSendingToUs   int64      `json:"peersSendingToUs,omitempty"`
+	PeersConnected     int64      `json:"peersConnected,omitempty"`
+	Eta                int64      `json:"eta,omitempty"`
+	HaveUnchecked      int64      `json:"haveUnchecked,omitempty"`
+	HaveValid          int64      `json:"haveValid,omitempty"`
+	UploadedEver       int64      `json:"uploadedEver,omitempty"`
+	SizeWhenDone       int64      `json:"sizeWhenDone,omitempty"`
+	AddedDate          int64      `json:"addedDate,omitempty"`
+	DoneDate           int64      `json:"doneDate,omitempty"`
+	DesiredAvailable   int64      `json:"desiredAvailable,omitempty"`
+	Comment            string     `json:"comment,omitempty"`
+	PercentDone        float32    `json:"percentDone,omitempty"`
+	IsFinished         bool       `json:"isFinished,omitempty"`
+	Files              []FileInfo `json:"files,omitempty"`
+}
+
+type FileInfo struct {
+	BytesCompleted int64  `json:"bytesCompleted"`
+	Length         int64  `json:"length"`
+	Name           string `json:"name"`
 }
 
 type TorrentInfoSmall struct {

@@ -142,10 +142,15 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 		log.Printf("error in torrentGet: %s", err.Error())
 		return TorrentGet{}
 	}
+	var fields []interface{}
+	if receiver.Arguments["fields"] != nil {
+		fields = receiver.Arguments["fields"].([]interface{})
+	}
 	idsSearchRaw, idsSearchGiven := receiver.Arguments["ids"]
 	idsSearch, idSearchIsSlice := idsSearchRaw.([]interface{})
 	torrents := make([]TorrentInfo, 0, len(transfers))
 	for _, transfer := range transfers {
+		log.Printf("Active Transfer: %v", transfer)
 		var status int64
 		switch transfer.Status {
 		case "DOWNLOADING":
@@ -209,34 +214,74 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			}
 		}
 
-		torrentInfo := TorrentInfo{
-			ID:                 id,
-			Name:               transfer.Name,
-			Error:              0,
-			ErrorString:        transfer.ErrorMessage,
-			Status:             status,
-			DownloadDir:        viper.GetString("downloadTo"),
-			RateDownload:       int64(transfer.DownloadSpeed),
-			RateUpload:         int64(transfer.UploadSpeed),
-			PeersGettingFromUs: int64(transfer.PeersGettingFromUs),
-			PeersSendingToUs:   int64(transfer.PeersSendingToUs),
-			PeersConnected:     int64(transfer.PeersConnected),
-			Eta:                transfer.EstimatedTime,
-			HaveUnchecked:      0,
-			HaveValid:          transfer.Downloaded,
-			UploadedEver:       transfer.Uploaded,
-			SizeWhenDone:       int64(transfer.Size),
-			DesiredAvailable:   int64(transfer.Availability),
-			Comment:            transfer.StatusMessage,
-			PercentDone:        float32(transfer.Downloaded) / float32(transfer.Size),
-			IsFinished:         status >= 4,
+		torrentInfo := TorrentInfo{}
+		for _, vi := range fields {
+			v := vi.(string)
+			switch {
+			case v == "id":
+				torrentInfo.ID = id
+			case v == "name":
+				torrentInfo.Name = transfer.Name
+			case v == "error":
+				torrentInfo.Error = 0
+			case v == "errorString":
+				torrentInfo.ErrorString = transfer.ErrorMessage
+			case v == "status":
+				torrentInfo.Status = status
+			case v == "downloadDir":
+				torrentInfo.DownloadDir = viper.GetString("downloadTo")
+			case v == "rateDownload":
+				torrentInfo.RateDownload = int64(transfer.DownloadSpeed)
+			case v == "rateUpload":
+				torrentInfo.RateUpload = int64(transfer.UploadSpeed)
+			case v == "peersGettingFromUs":
+				torrentInfo.PeersGettingFromUs = int64(transfer.PeersGettingFromUs)
+			case v == "peersSendingToUs":
+				torrentInfo.PeersSendingToUs = int64(transfer.PeersSendingToUs)
+			case v == "peersConnected":
+				torrentInfo.PeersConnected = int64(transfer.PeersConnected)
+			case v == "eta":
+				torrentInfo.Eta = transfer.EstimatedTime
+			case v == "haveUnchecked":
+				torrentInfo.HaveUnchecked = 0
+			case v == "haveValid":
+				torrentInfo.HaveValid = transfer.Downloaded
+			case v == "uploadedEver":
+				torrentInfo.UploadedEver = transfer.Uploaded
+			case v == "sizeWhenDone":
+				torrentInfo.SizeWhenDone = int64(transfer.Size)
+			case v == "desiredAvailable":
+				torrentInfo.DesiredAvailable = int64(transfer.Availability)
+			case v == "comment":
+				torrentInfo.Comment = transfer.StatusMessage
+			case v == "percentDone":
+				torrentInfo.PercentDone = float32(transfer.Downloaded) / float32(transfer.Size)
+			case v == "isFinished":
+				torrentInfo.IsFinished = status >= 4
+			case v == "addedDate":
+				if transfer.CreatedAt != nil {
+					torrentInfo.AddedDate = transfer.CreatedAt.Unix()
+				}
+			case v == "doneDate":
+				if transfer.FinishedAt != nil {
+					torrentInfo.DoneDate = transfer.FinishedAt.Unix()
+				}
+			case v == "files":
+				files, err := Downloader.RecursiveList(transfer.FileID, viper.GetString("downloadTo"))
+				if err != nil {
+					log.Printf("error listing files, %s", err.Error())
+					continue
+				}
+				for _, f := range files {
+					torrentInfo.Files = append(torrentInfo.Files, FileInfo{
+						BytesCompleted: f.Size * transfer.Downloaded / int64(transfer.Size), // Fake percentage.
+						Length:         f.Size,
+						Name:           f.Name,
+					})
+				}
+			}
 		}
-		if transfer.CreatedAt != nil {
-			torrentInfo.AddedDate = transfer.CreatedAt.Unix()
-		}
-		if transfer.FinishedAt != nil {
-			torrentInfo.DoneDate = transfer.FinishedAt.Unix()
-		}
+		log.Printf("ti: %v", torrentInfo)
 		torrents = append(torrents, torrentInfo)
 	}
 	return TorrentGet{

@@ -38,7 +38,7 @@ func Clean() error {
 // Lint lints
 func Lint() error {
 	mg.Deps(Format)
-	return sh.RunV("golangci-lint", "run", "--enable-all", "-D", "gochecknoglobals")
+	return sh.RunV("golangci-lint", "run", "--enable-all", "-D", "gochecknoglobals,gocyclo")
 }
 
 // Format runs goimports on everything

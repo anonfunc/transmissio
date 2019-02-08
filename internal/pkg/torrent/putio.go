@@ -193,6 +193,37 @@ func (r PutIoDownloader) recursiveDownload(file putio.File, downloadDir string) 
 	return nil
 }
 
+func (r PutIoDownloader) RecursiveList(fileID int64, downloadDir string) ([]putio.File, error) {
+	var result []putio.File
+	file, err := r.Client.Files.Get(context.TODO(), fileID)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.recursiveListFile(context.TODO(), file, downloadDir, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (r PutIoDownloader) recursiveListFile(ctx context.Context,
+	file putio.File, dir string, output *[]putio.File) error {
+	if file.ContentType == "application/x-directory" {
+		children, _, err := r.Client.Files.List(ctx, file.ID)
+		if err != nil {
+			return err
+		}
+		for _, child := range children {
+			if err := r.recursiveListFile(ctx, child, filepath.Join(dir, file.Name), output); err != nil {
+				return err
+			}
+		}
+	}
+	// Make File name the actual path
+	file.Name = filepath.Join(dir, file.Name)
+	*output = append(*output, file)
+	return nil
+}
+
 func (r PutIoDownloader) downloadFile(file putio.File, downloadDir string) error {
 	readCloser, err := r.Client.Files.Download(context.TODO(), file.ID, true, nil)
 	if err != nil {
