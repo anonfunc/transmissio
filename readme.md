@@ -52,8 +52,9 @@ so don't put this facing the internet.
 
 Torrent status will reflect Put.io status, so a completed transfer
 which is in the middle of downloading will appear to be 100% complete.
-When finished downloading locally, the transfer will be removed, 
-not marked as seeding.
+When finished downloading locally, the transfer will be removed after 10 minutes, 
+not marked as seeding.   This is to support clients which need to be aware of the transfer
+in order to do post-processing.
 
 Handled RPC methods:
 
