@@ -48,6 +48,8 @@ type TorrentInfo struct {
 	DoneDate           int64  `json:"doneDate"`
 	DesiredAvailable   int64  `json:"desiredAvailable"`
 	Comment            string `json:"comment"`
+	PercentDone        float32  `json:"percentDone"`
+	IsFinished         bool   `json:"isFinished"`
 }
 
 type TorrentInfoSmall struct {

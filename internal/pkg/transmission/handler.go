@@ -164,8 +164,8 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 		}
 		var id int64
 		var hash string
-		if transfer.MagnetURI != "" {
-			mi, err := metainfo.ParseMagnetURI(transfer.MagnetURI)
+		if strings.HasPrefix(transfer.Source, "magnet:") {
+			mi, err := metainfo.ParseMagnetURI(transfer.Source)
 			if err != nil {
 				log.Printf("Unabled to parse magnet URI %s", err.Error())
 				id = transfer.ID
@@ -180,7 +180,7 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			}
 		} else {
 			// TODO Stable ID and hash for torrent files.
-			id, hash = torrentLinkToIDAndHash(transfer.TorrentLink)
+			id, hash = torrentLinkToIDAndHash(transfer.Source)
 			log.Printf("No magnet URI, fetched and derived %d and %s", id, hash)
 		}
 
@@ -228,6 +228,8 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			SizeWhenDone:       int64(transfer.Size),
 			DesiredAvailable:   int64(transfer.Availability),
 			Comment:            transfer.StatusMessage,
+			PercentDone:        float32(transfer.Downloaded) / float32(transfer.Size),
+			IsFinished:         status >= 4,
 		}
 		if transfer.CreatedAt != nil {
 			torrentInfo.AddedDate = transfer.CreatedAt.Unix()
@@ -246,6 +248,7 @@ var torrentLinkInfoCache = make(map[string]*metainfo.MetaInfo)
 
 func torrentLinkToIDAndHash(torrentLink string) (int64, string) {
 	if torrentLinkInfoCache[torrentLink] == nil {
+		log.Printf("Retrieving torrent %s", torrentLink)
 		// TODO Smarter max cache size.
 		if len(torrentLinkInfoCache) > 1000 {
 			torrentLinkInfoCache = make(map[string]*metainfo.MetaInfo)
@@ -255,10 +258,16 @@ func torrentLinkToIDAndHash(torrentLink string) (int64, string) {
 			log.Printf("Error retrieving torrent link: %s", err.Error())
 			return 0, ""
 		}
-		info, err := metainfo.Load(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
 		if err != nil {
 			log.Printf("Error reading torrent response: %s", err.Error())
+			return 0, ""
+		}
+		info, err := metainfo.Load(bytes.NewBuffer(body))
+		if err != nil {
+			log.Printf("Error parsing torrent response: %s", err.Error())
+			log.Printf("Torrent response: %s", string(body))
 			return 0, ""
 		}
 		torrentLinkInfoCache[torrentLink] = info
