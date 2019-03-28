@@ -1,8 +1,8 @@
 module github.com/anonfunc/transmissio
 
 require (
-	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/anacrolix/torrent v1.0.0
+	github.com/golangci/golangci-lint v1.15.0 // indirect
 	github.com/igungor/go-putio v0.0.0-20170802205209-94406739e2bd
 	github.com/magefile/mage v1.8.0
 	github.com/radovskyb/watcher v1.0.5

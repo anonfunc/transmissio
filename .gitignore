@@ -104,3 +104,4 @@ fabric.properties
 transmissio
 /config/
 /.idea/
+/.gobincache/

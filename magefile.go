@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 
@@ -37,13 +38,29 @@ func Clean() error {
 
 // Lint lints
 func Lint() error {
-	mg.Deps(Format)
-	return sh.RunV("golangci-lint", "run", "--enable-all", "-D", "gochecknoglobals,gocyclo")
+	mg.SerialDeps(Format, ensureGobin)
+	return sh.RunV("gobin", "-m", "-run", "github.com/golangci/golangci-lint/cmd/golangci-lint", "run", "--enable-all", "-D", "gochecknoglobals,gocyclo")
+}
+
+func ensureGobin() error {
+	if mg.Verbose() {
+		log.Println("installing gobin")
+	}
+
+	cmd := exec.Command("sh", "-c", "GO111MODULE=off go get github.com/myitcv/gobin")
+	cmd.Dir = "/"
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		println(string(out))
+		println(err.Error())
+	}
+	return err
 }
 
 // Format runs goimports on everything
 func Format() error {
-	return sh.Run("find", ".", "-name", "*.go", "-exec", "goimports", "-w", "{}", ";")
+	_ = sh.Run("find", ".", "-name", "*.go", "-exec", "goimports", "-w", "{}", ";")
+	return nil
 }
 
 // Docker builds the docker image

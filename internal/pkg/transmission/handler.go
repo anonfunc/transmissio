@@ -223,7 +223,7 @@ func (receiver *RPCRequest) torrentGet() TorrentGet {
 			case v == "name":
 				torrentInfo.Name = transfer.Name
 			case v == "error":
-				var i int64  // TODO What to put here?
+				var i int64 // TODO What to put here?
 				torrentInfo.Error = &i
 			case v == "errorString":
 				torrentInfo.ErrorString = transfer.StatusMessage
@@ -303,7 +303,7 @@ func torrentLinkToIDAndHash(torrentLink string) (int64, string) {
 		if len(torrentLinkInfoCache) > 1000 {
 			torrentLinkInfoCache = make(map[string]*metainfo.MetaInfo)
 		}
-		resp, err := http.Get(torrentLink)
+		resp, err := http.Get(torrentLink) //nolint:gosec
 		if err != nil {
 			log.Printf("Error retrieving torrent link: %s", err.Error())
 			return 0, ""
