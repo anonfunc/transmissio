@@ -40,6 +40,15 @@ func Test_blackholePathToDownloadDir(t *testing.T) {
 			},
 			want: "/download/Movie/Foo",
 		},
+		{
+			name: "Blackhole under Download (Issue #2)",
+			args: args{
+				file:            "/export/nas/Downloads/Torrents/test.torrent",
+				basePath:        "/export/nas/Downloads/Torrents/",
+				baseDownloadDir: "/export/nas/Downloads/",
+			},
+			want: "/export/nas/Downloads",
+		},
 	}
 	for _, tt2 := range tests {
 		tt := tt2

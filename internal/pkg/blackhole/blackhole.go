@@ -64,5 +64,5 @@ func handle(downloader *torrent.PutIoDownloader, event watcher.Event, basePath s
 }
 
 func blackholePathToDownloadDir(file string, basePath, baseDownloadDir string) string {
-	return strings.Replace(path.Dir(file), basePath, baseDownloadDir, -1)
+	return strings.Replace(path.Dir(file), strings.TrimRight(basePath, "/"), strings.TrimRight(baseDownloadDir, "/"), -1)
 }
